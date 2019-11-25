@@ -1,0 +1,6 @@
+{% ckan_extends "package/read_base.html" %}
+
+{% block content_primary_nav %}
+  {{ super() }}
+    {{ h.build_nav_icon('relationships', _('Relationships'), dataset_id=pkg.name) }}
+{% endblock %}

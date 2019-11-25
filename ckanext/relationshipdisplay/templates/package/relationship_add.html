@@ -1,0 +1,74 @@
+{% extends "package/read_base.html" %}
+
+{% import 'macros/form.html' as form %}
+
+{% set rel = c.rel_dict %}
+
+{% block primary_content_inner %}
+  {% link_for _('Back to all resource acl'), controller='ckanext.relationshipdisplay.controller:RelationshipController', action='relationships', dataset_id=dataset_id, class_='btn btn-default pull-right', icon='arrow-left' %}
+  <h1 class="page-heading">
+    {% block page_heading %}{{ _('Edit Relationship') if acl else _('Add Relationship') }}{% endblock %}
+  </h1>
+  {% block form %}
+  <form class="dataset-form" method='post' >
+    <div class="row-fluid">
+      {% if not rel %}
+         <div class="control-group control-medium">
+          <label class="control-label" for="dataset">
+            {{ _('Dataset') }}
+          </label>
+          {#<span>
+            {{ _('If you wish to add an existing organization, search for their organization below.') }}
+          </span>#}
+          <div class="controls">
+            <input id="object" type="text" name="object" placeholder="Dataset"
+            value="" class="form-control control-medium" data-module="autocomplete"
+            data-module-source="/api/3/action/package_autocomplete?q=?">
+          </div>
+        </div>
+      {% else %}
+          <div class="control-group control-medium">
+            <label class="control-label" for="dataset">
+              {{ _('Dataset') }}
+            </label>
+            <div class="controls">
+              <input type="hidden" name="object" value="{{ rel['object'] }}" />
+              <input id="object" name="object" type="text" value="{{ c.auth['name'] }}"
+                disabled="True" class="form-control control-medium">  
+            </div>
+          </div>
+      {% endif %}
+    </div>
+    {% set format_attrs = {'data-module': 'autocomplete'} %}
+    {{ form.select('relationship_type', label=_('Relationship'), options=c.relationship_types, selected=c.acl_permission, error='', attrs=format_attrs) }}
+    <div class="form-actions">
+      {% if acl %}
+        <a href="{% url_for controller='ckanext.relationshipdisplay.controller:RelationshipController', action='relationship_delete', id=acl.id, dataset_id=dataset_id, resource_id=resource_id %}" class="btn btn-danger pull-left" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete this acl?') }}">{{ _('Delete') }}</a>
+        <button class="btn btn-primary" type="submit" name="submit" >
+          {{ _('Save') }}
+        </button>
+      {% else %}
+        <button class="btn btn-primary" type="submit" name="submit" >
+          {{ _('Add Relationship') }}
+        </button>
+      {% endif %}
+    </div>
+  </form>
+  {% endblock %}
+{% endblock %}
+
+{% block secondary_content %}
+  {{ super() }}
+  <div class="module module-narrow module-shallow">
+    <h2 class="module-heading">
+      <i class="fa fa-lg fa-info-circle"></i>
+      {{ _('Relationship Types') }}
+    </h2>
+    <div class="module-content">
+      {% trans %}
+         <p><strong>None:</strong> Cannot access the resource</p>
+         <p><strong>Read:</strong> Can access the resource</p>
+      {% endtrans %}
+    </div>
+  </div>
+{% endblock %}

@@ -35,9 +35,6 @@ class RelationshipdisplayPlugin(plugins.SingletonPlugin):
     def relationship_type_display(self, relation):
         return blueprint.relationship_types.get(relation,'')   
         
-    def relationship_id(self, relationship):
-        rel_dict =  {'object':relationship['object'], 'type':relationship['type']}
-        return rel_dict
         
     def relationship_dataset(self, object_id):
         try:
@@ -46,11 +43,8 @@ class RelationshipdisplayPlugin(plugins.SingletonPlugin):
             dataset = []    
         return dataset
     
-    
-    
     def get_helpers(self):
         return {'package_relationships': self.package_relationships, 
-            'relationship_id':self.relationship_id,
             'relationship_type_display':self.relationship_type_display,
             'relationship_dataset':self.relationship_dataset,
             }

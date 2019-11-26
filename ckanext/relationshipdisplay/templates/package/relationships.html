@@ -3,24 +3,31 @@
 {% block subtitle %}Relationships {{ g.template_title_deliminater }} {{ h.dataset_display_name(pkg) }}{% endblock %}
 
 {% block page_primary_action %}
-  {% link_for _('Add Relationship'), controller='ckanext.relationshipdisplay.controller:RelationshipController', action='relationship_create', subject_id=dataset_id, class_='btn btn-primary', icon='plus-square' %}
+  {% if h.check_access('package_relationship_create', {'id': pkg.id})%}
+    {% link_for _('Add Relationship'), named_route='relationships.new', dataset_id=pkg.id, class_='btn btn-primary', icon='plus-square' %}
+  {% endif %}
 {% endblock %}
 
+
 {% block primary_content_inner %}
-  <h3 class="page-heading">{{ _('{0} Related Datasets'.format(relationships|length)) }}</h3>
-  <table class="table table-header table-hover table-bordered" id="member-table">
+  {% set relationships = h.package_relationships(pkg.id)%}
+  {% set count = relationships|length %}
+  {% set relationships_count = ungettext('{count} Related Dataset', '{count} Related Datasets', count).format(count=count) %}
+
+  <h3 class="page-heading">{{ relationships_count }}</h3>
+  <table class="table table-header table-hover table-bordered" id="relationship-table">
     <thead>
       <tr>
-        <th>{{ _('Relationship') }}</th>
+        <th width=120>{{ _('Relationship') }}</th>
         <th>{{ _('Dataset') }}</th>
 		<th>{{ _('Comment') }}</th>
-        <th>{{ _('Action') }}</th>
+        <th width=100>{{ _('Action') }}</th>
       </tr>
     </thead>
     <tbody>
       {% for rel in relationships %}
       <tr>
-        <td class="media">{{ h.relationship_display(rel.type) }}</td>
+        <td class="media" >{{ h.relationship_type_display(rel.type) }}</td>
         {% set related = h.relationship_dataset( rel['object'] ) %}
 		
 		{% if related %}
@@ -30,12 +37,12 @@
 		<span class="dataset-private label label-inverse"><i class="fa fa-lock"></i></span></td>
 		{% endif %}
         <td><div class="notes embedded-content">{{ h.render_markdown(h.get_translated(rel, 'comment')) }}</div></td>
-		<td>
-		    <div class="btn-group pull-right">
-            <a class="btn btn-default btn-sm" href="{% url_for controller='ckanext.relationshipdisplay.controller:RelationshipController', action='relationship_create', rel=rel %}" title="{{ _('Edit') }}"><i class="fa fa-wrench"></i>
-            </a>
-            <a class="btn btn-danger btn-sm" href="{% url_for controller='ckanext.relationshipdisplay.controller:RelationshipController', action='relationship_delete', dataset_id=rel.subject, relationship_type=rel.type, object_id=rel.object%}" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete this relationship?') }}" title="{{ _('Delete') }}">{% block delete_button_text %}<i class="fa fa-times"></i>{% endblock %}
-			</a>
+		<td >
+			<div class="btn-group pull-right">
+                <a class="btn btn-default btn-sm" href="{{ h.url_for('relationships.new', dataset_id=pkg.id, object=rel.object, type=rel.type)  }}" title="{{ _('Edit') }}">
+                <i class="fa fa-wrench"></i></a>
+              <a class="btn btn-danger btn-sm" href="{{ h.url_for('relationships.delete', dataset_id=pkg.id, object=rel.object, type=rel.type)  }}" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete this relationship?') }}" title="{{ _('Delete') }}">{% block delete_button_text %}
+			  <i class="fa fa-times"></i>{% endblock %}</a>
             </div>
         </td>
       </tr>

@@ -2,50 +2,62 @@
 
 {% import 'macros/form.html' as form %}
 
-{% set rel = c.rel_dict %}
+{% set rel_object = c.object %}
+{% set rel_type = c.type %}
+{% set rel_comment = c.comment %}
+
+ {% block subtitle %}{{ _('Edit Relationship') if rel_object else _('Add Relationship') }} - {{ super() }}{% endblock %} 
+
 
 {% block primary_content_inner %}
-  {% link_for _('Back to all resource acl'), controller='ckanext.relationshipdisplay.controller:RelationshipController', action='relationships', dataset_id=dataset_id, class_='btn btn-default pull-right', icon='arrow-left' %}
+  {% link_for _('Back to all relationships'), named_route='relationships.read', dataset_id=pkg.id, class_='btn btn-default pull-right', icon='arrow-left' %}
   <h1 class="page-heading">
-    {% block page_heading %}{{ _('Edit Relationship') if acl else _('Add Relationship') }}{% endblock %}
+    {% block page_heading %}{{ _('Edit Relationship') if rel_object else _('Add Relationship') }}{% endblock %}
   </h1>
+  
   {% block form %}
-  <form class="dataset-form" method='post' >
-    <div class="row-fluid">
-      {% if not rel %}
-         <div class="control-group control-medium">
-          <label class="control-label" for="dataset">
-            {{ _('Dataset') }}
-          </label>
-          {#<span>
-            {{ _('If you wish to add an existing organization, search for their organization below.') }}
-          </span>#}
+  <form class="dataset-form " method='post'>  
+  {% if rel_object %}
+		{% set object_attrs = {'disabled':'true', 'data-module':"autocomplete"} %} 
+		{% set type_attrs = {'disabled':'true', 'data-module':"autocomplete"} %}
+		<input type="hidden" name="object" value="{{ rel_object }}" />
+		<input type="hidden" name="type" value="{{ rel_type }}" />
+	{% else %}
+		{% set object_attrs = { 'placeholder':_('Dataset'), 'data-module':"autocomplete", 'data-module-source':"/api/2/util/dataset/autocomplete?incomplete=?"} %}
+		{% set type_attrs = { 'data-module':'autocomplete' } %}
+	{% endif %}
+			
+
+    <div class="row">
+        <div class="form-group control-medium">
           <div class="controls">
-            <input id="object" type="text" name="object" placeholder="Dataset"
-            value="" class="form-control control-medium" data-module="autocomplete"
-            data-module-source="/api/3/action/package_autocomplete?q=?">
-          </div>
-        </div>
-      {% else %}
-          <div class="control-group control-medium">
-            <label class="control-label" for="dataset">
-              {{ _('Dataset') }}
-            </label>
-            <div class="controls">
-              <input type="hidden" name="object" value="{{ rel['object'] }}" />
-              <input id="object" name="object" type="text" value="{{ c.auth['name'] }}"
-                disabled="True" class="form-control control-medium">  
-            </div>
-          </div>
-      {% endif %}
-    </div>
-    {% set format_attrs = {'data-module': 'autocomplete'} %}
-    {{ form.select('relationship_type', label=_('Relationship'), options=c.relationship_types, selected=c.acl_permission, error='', attrs=format_attrs) }}
+				
+			{{ form.input('object', id='field-object', label=_('Dataset'), value=rel_object, error='', attrs=object_attrs) }}
+
+		</div>
+	    </div>
+      </div>
+
+  <div class="row">
+        <div class="form-group control-medium">
+          <div class="controls">
+				
+			{{ form.select('type', id='field-type', label=_('Relationship Type'), selected=rel_type, options=relationship_types,  error='', attrs=type_attrs) }}
+
+		</div>
+	    </div>
+      </div>
+
+	
+	<div class="row"><div class="form-group control-medium"><div class="controls">
+	 {{ form.markdown('comment', id='field-comment', label=_('Comment'), placeholder=_('Optional comment about this relationship'), value=rel_comment, error='') }}
+	</div></div></div>
+	
     <div class="form-actions">
-      {% if acl %}
-        <a href="{% url_for controller='ckanext.relationshipdisplay.controller:RelationshipController', action='relationship_delete', id=acl.id, dataset_id=dataset_id, resource_id=resource_id %}" class="btn btn-danger pull-left" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete this acl?') }}">{{ _('Delete') }}</a>
+      {% if rel_object and rel_type%}
+        <a href="{{ h.url_for('relationships.delete', dataset_id=pkg.id, object=rel_object, type=rel_type) }}" class="btn btn-danger pull-left" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete this collaborator?') }}">{{ _('Delete') }}</a>
         <button class="btn btn-primary" type="submit" name="submit" >
-          {{ _('Save') }}
+          {{ _('Update Relationship') }}
         </button>
       {% else %}
         <button class="btn btn-primary" type="submit" name="submit" >
@@ -58,17 +70,16 @@
 {% endblock %}
 
 {% block secondary_content %}
-  {{ super() }}
-  <div class="module module-narrow module-shallow">
-    <h2 class="module-heading">
-      <i class="fa fa-lg fa-info-circle"></i>
-      {{ _('Relationship Types') }}
-    </h2>
-    <div class="module-content">
-      {% trans %}
-         <p><strong>None:</strong> Cannot access the resource</p>
-         <p><strong>Read:</strong> Can access the resource</p>
-      {% endtrans %}
-    </div>
+{{ super() }}
+<div class="module module-narrow module-shallow">
+  <h2 class="module-heading">
+    <i class="fa fa-lg fa-info-circle"></i>
+    {{ _('What are the available roles?') }}
+  </h2>
+  <div class="module-content">
+    {% trans %}
+      <p><strong>Editor:</strong> Editors can edit the dataset and its resources, as well accessing the dataset if private.</p>
+      <p><strong>Member:</strong> Members can access the dataset if private, but not edit it.</p>
+    {% endtrans %}
   </div>
 {% endblock %}

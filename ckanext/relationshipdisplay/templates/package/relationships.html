@@ -3,7 +3,7 @@
 {% block subtitle %}Relationships {{ g.template_title_deliminater }} {{ h.dataset_display_name(pkg) }}{% endblock %}
 
 {% block page_primary_action %}
-  {% if h.check_access('package_relationship_create', {'id': pkg.id})%}
+  {% if h.check_access('package_relationship_create', {'subject': pkg.id, 'object': pkg.id})%}
     {% link_for _('Add Relationship'), named_route='relationships.new', dataset_id=pkg.id, class_='btn btn-primary', icon='plus-square' %}
   {% endif %}
 {% endblock %}

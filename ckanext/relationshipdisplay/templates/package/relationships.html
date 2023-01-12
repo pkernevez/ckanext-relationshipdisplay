@@ -25,9 +25,9 @@
       </tr>
     </thead>
     <tbody>
-      {% for rel in relationships %}
-      <tr>
-        <td class="media" >{{ h.relationship_type_display(rel.type) }}</td>
+    {% for rel in relationships |sort(attribute='type') %}
+    <tr>
+        <td class="media">{{ h.relationship_type_display(rel.type) }}</td>
         {% set related = h.relationship_dataset( rel['object'] ) %}
         {% if related %}
         <td class="dataset-details">{{ h.dataset_link( related ) }}</td>

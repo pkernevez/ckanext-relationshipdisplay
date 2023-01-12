@@ -2,9 +2,9 @@
 
 {% import 'macros/form.html' as form %}
 
-{% set rel_object = c.object %}
-{% set rel_type = c.type %}
-{% set rel_comment = c.comment %}
+{% set rel_object = object %}
+{% set rel_type = type %}
+{% set rel_comment = comment %}
 
  {% block subtitle %}{{ _('Edit Relationship') if rel_object else _('Add Relationship') }} - {{ super() }}{% endblock %} 
 

@@ -1,3 +1,5 @@
+import logging
+
 from flask import Blueprint
 from flask.views import MethodView
 
@@ -26,14 +28,16 @@ def relationships_read(dataset_id):
     try:
         toolkit.check_access(u'package_relationships_list', context, data_dict)
         # needed to ckan_extend package/edit_base.html
-        g.pkg_dict = toolkit.get_action('package_show')(context, data_dict)
+        pkg_dict = toolkit.get_action('package_show')(context, data_dict)
     except toolkit.NotAuthorized:
         message = 'Unauthorized to read relationships {0}'.format(dataset_id)
         return toolkit.abort(401, toolkit._(message))
     except toolkit.ObjectNotFound:
         return toolkit.abort(404, toolkit._(u'Resource not found'))
 
-    return toolkit.render('package/relationships.html')
+    return toolkit.render('package/relationships.html', extra_vars={
+        u'pkg_dict': pkg_dict
+    })
 
 def relationships_delete(dataset_id ):
     context = {u'model': model, u'user': toolkit.c.user}
@@ -97,7 +101,7 @@ class RelationshipEditView(MethodView):
         try:
             toolkit.check_access(u'package_relationships_list', context, data_dict)
             # needed to ckan_extend package/edit_base.html
-            g.pkg_dict = toolkit.get_action('package_show')(context, data_dict)
+            pkg_dict = toolkit.get_action('package_show')(context, data_dict)
         except toolkit.NotAuthorized:
             message = u'Unauthorized to read relationships {0}'.format(dataset_id)
             return toolkit.abort(401, toolkit._(message))
@@ -106,6 +110,7 @@ class RelationshipEditView(MethodView):
 
         object = toolkit.request.params.get(u'object')
         type = toolkit.request.params.get(u'type')
+        relationship_comment = ""
 
         if object and type:
             relationships = toolkit.get_action('package_relationships_list')(context, data_dict)
@@ -114,11 +119,13 @@ class RelationshipEditView(MethodView):
                     relationship_comment = r['comment']
             #object_dict = toolkit.get_action('package_show')(context, {'id': object})
             # Needed to reuse template
-            g.object = object
-            g.type = type
-            g.comment = relationship_comment
-            
-        extra_vars = {'relationship_types': [{'text':v, 'value':k} for k,v in relationship_types.items()]}
+
+        extra_vars = {u'relationship_types': [{'text': v, 'value': k} for k, v in relationship_types.items()],
+                      u'pkg_dict': pkg_dict,
+                      u'object': object,
+                      u'type': type,
+                      u'comment': relationship_comment
+                      }
 
         return toolkit.render('package/relationship_add.html', extra_vars)
 
